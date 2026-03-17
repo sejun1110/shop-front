@@ -18,7 +18,7 @@ type CartItemDTO = {
   imageUrl: string | null;
   unitPrice: number;
   quantity: number;
-  lineAmount: number;
+  lineTotal: number;
   stockQty: number;
   safetyStockQty: number;
 };
@@ -48,6 +48,9 @@ export default function CartPage() {
   useEffect(() => {
     const init = async () => {
       try {
+        setLoading(true);
+        setPageError(null);
+
         await api.get("/members/me");
         setIsLogin(true);
         await loadCart();
@@ -146,6 +149,8 @@ export default function CartPage() {
                     : `${API_ROOT}${item.imageUrl}`
                   : "/no-image.png";
 
+                const maxReached = item.quantity >= (item.stockQty ?? 0);
+
                 return (
                   <div key={item.cartItemId} className="cart-item">
                     <img
@@ -168,7 +173,7 @@ export default function CartPage() {
                       </div>
 
                       <div className="cart-item__amount">
-                        합계: {Number(item.lineAmount ?? 0).toLocaleString()}원
+                        합계: {Number(item.lineTotal ?? 0).toLocaleString()}원
                       </div>
                     </div>
 
@@ -193,11 +198,18 @@ export default function CartPage() {
                           onClick={() =>
                             handleChangeQuantity(item.cartItemId, item.quantity + 1)
                           }
-                          disabled={busyItemId === item.cartItemId}
+                          disabled={
+                            busyItemId === item.cartItemId || maxReached
+                          }
+                          title={maxReached ? "재고 한도에 도달했습니다." : ""}
                         >
                           +
                         </button>
                       </div>
+
+                      {maxReached && (
+                        <div className="cart-item__meta">최대 수량입니다.</div>
+                      )}
 
                       <button
                         type="button"

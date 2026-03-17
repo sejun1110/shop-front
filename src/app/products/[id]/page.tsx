@@ -9,6 +9,30 @@ import api, { API_ROOT } from "@/lib/api";
 import type { ProductDetail } from "@/types/product";
 import "./page.css";
 
+type CartItemDTO = {
+  cartItemId: number;
+  skuId: number;
+  skuCode: string;
+  size: string;
+  productId: number | null;
+  productTitle: string | null;
+  productSlug: string | null;
+  imageUrl: string | null;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+  stockQty: number;
+  safetyStockQty: number;
+};
+
+type CartResponseDTO = {
+  cartId: number;
+  memberId: number;
+  items: CartItemDTO[];
+  totalItemCount: number;
+  totalAmount: number;
+};
+
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -16,10 +40,17 @@ export default function ProductDetailPage() {
 
   const [isLogin, setIsLogin] = useState<boolean | null>(null);
   const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [cart, setCart] = useState<CartResponseDTO | null>(null);
   const [selectedSkuId, setSelectedSkuId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const loadCart = async () => {
+    const res = await api.get<CartResponseDTO>("/cart");
+    setCart(res.data);
+    return res.data;
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -27,19 +58,28 @@ export default function ProductDetailPage() {
         setLoading(true);
         setError(null);
 
+        let loggedIn = false;
+
         try {
           await api.get("/members/me");
           setIsLogin(true);
+          loggedIn = true;
         } catch {
           setIsLogin(false);
         }
 
-        const res = await api.get<ProductDetail>(`/products/${id}`);
-        const data = res.data;
+        const productRes = await api.get<ProductDetail>(`/products/${id}`);
+        const data = productRes.data;
         setProduct(data);
 
         if (data.sizes && data.sizes.length > 0) {
           setSelectedSkuId(data.sizes[0].id);
+        }
+
+        if (loggedIn) {
+          await loadCart();
+        } else {
+          setCart(null);
         }
       } catch (e) {
         const message = e instanceof Error ? e.message : "상품 상세 조회 실패";
@@ -55,7 +95,7 @@ export default function ProductDetailPage() {
   }, [id]);
 
   const selectedSize = useMemo(() => {
-    return product?.sizes.find((size) => size.id === selectedSkuId) ?? null;
+    return product?.sizes?.find((size) => size.id === selectedSkuId) ?? null;
   }, [product, selectedSkuId]);
 
   const resolvedImageUrl = useMemo(() => {
@@ -63,6 +103,41 @@ export default function ProductDetailPage() {
     if (product.imageUrl.startsWith("http")) return product.imageUrl;
     return `${API_ROOT}${product.imageUrl}`;
   }, [product]);
+
+  const currentCartQty = useMemo(() => {
+    if (!selectedSkuId || !cart?.items?.length) return 0;
+    return cart.items.find((item) => item.skuId === selectedSkuId)?.quantity ?? 0;
+  }, [cart, selectedSkuId]);
+
+  const selectedStockQty = selectedSize?.stock ?? 0;
+  const remainingQty = Math.max(selectedStockQty - currentCartQty, 0);
+  const soldOut = selectedStockQty < 1;
+  const reachedCartLimit = !soldOut && currentCartQty >= selectedStockQty;
+
+  const progressWidth = useMemo(() => {
+    if (selectedStockQty <= 0) return 0;
+    return Math.min((currentCartQty / selectedStockQty) * 100, 100);
+  }, [currentCartQty, selectedStockQty]);
+
+  const addButtonText = useMemo(() => {
+    if (busy) return "처리 중...";
+    if (!selectedSize) return "사이즈 선택";
+    if (soldOut) return "품절";
+    if (reachedCartLimit) return "이미 최대 수량 담김";
+    return "장바구니 담기";
+  }, [busy, selectedSize, soldOut, reachedCartLimit]);
+
+  const stockBadgeText = useMemo(() => {
+    if (soldOut) return "품절";
+    if (reachedCartLimit) return "최대 수량 도달";
+    return `추가 가능 ${remainingQty}개`;
+  }, [soldOut, reachedCartLimit, remainingQty]);
+
+  const stockBadgeClassName = useMemo(() => {
+    if (soldOut) return "product-detail-stock-badge is-soldout";
+    if (reachedCartLimit) return "product-detail-stock-badge is-limit";
+    return "product-detail-stock-badge is-available";
+  }, [soldOut, reachedCartLimit]);
 
   const addToCart = async () => {
     if (isLogin !== true) {
@@ -76,8 +151,13 @@ export default function ProductDetailPage() {
       return;
     }
 
-    if ((selectedSize.stock ?? 0) < 1) {
+    if (soldOut) {
       alert("재고가 없습니다.");
+      return;
+    }
+
+    if (reachedCartLimit) {
+      alert("이미 최대 수량이 담겨 있습니다.");
       return;
     }
 
@@ -89,6 +169,7 @@ export default function ProductDetailPage() {
         quantity: 1,
       });
 
+      await loadCart();
       alert("장바구니에 담았습니다.");
     } catch (e) {
       const message = e instanceof Error ? e.message : "장바구니 담기 실패";
@@ -98,38 +179,14 @@ export default function ProductDetailPage() {
     }
   };
 
-  const goToCart = async () => {
+  const goToCart = () => {
     if (isLogin !== true) {
       alert("로그인이 필요합니다.");
       router.push("/login");
       return;
     }
 
-    if (!selectedSize) {
-      alert("사이즈를 선택하세요.");
-      return;
-    }
-
-    if ((selectedSize.stock ?? 0) < 1) {
-      alert("재고가 없습니다.");
-      return;
-    }
-
-    try {
-      setBusy(true);
-
-      await api.post("/cart/items", {
-        skuId: selectedSize.id,
-        quantity: 1,
-      });
-
-      router.push("/cart");
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "장바구니 이동 처리 실패";
-      alert(message);
-    } finally {
-      setBusy(false);
-    }
+    router.push("/cart");
   };
 
   return (
@@ -142,7 +199,7 @@ export default function ProductDetailPage() {
         </div>
 
         {loading ? (
-          <p className="product-detail-state">상품 상세 불러오는 중...</p>
+          <p className="product-detail-state">상품 정보를 불러오는 중...</p>
         ) : error ? (
           <p className="product-detail-error">{error}</p>
         ) : !product ? (
@@ -172,31 +229,83 @@ export default function ProductDetailPage() {
                 <div className="product-detail-size-block">
                   <div className="product-detail-size-label">그립 사이즈</div>
 
-                  {product.sizes.length === 0 ? (
+                  {!product.sizes || product.sizes.length === 0 ? (
                     <p className="product-detail-empty-text">
                       선택 가능한 사이즈가 없습니다.
                     </p>
                   ) : (
-                    <div className="product-detail-size-list">
-                      {product.sizes.map((size) => {
-                        const active = selectedSkuId === size.id;
-                        const soldOut = (size.stock ?? 0) < 1;
+                    <>
+                      <div className="product-detail-size-list">
+                        {product.sizes.map((size) => {
+                          const active = selectedSkuId === size.id;
+                          const sizeSoldOut = (size.stock ?? 0) < 1;
 
-                        return (
-                          <button
-                            key={size.id}
-                            type="button"
-                            className={`product-detail-size-btn ${
-                              active ? "is-active" : ""
-                            } ${soldOut ? "is-disabled" : ""}`}
-                            onClick={() => setSelectedSkuId(size.id)}
-                            disabled={soldOut}
-                          >
-                            {size.size} / 재고 {size.stock}
-                          </button>
-                        );
-                      })}
-                    </div>
+                          return (
+                            <button
+                              key={size.id}
+                              type="button"
+                              className={`product-detail-size-btn ${
+                                active ? "is-active" : ""
+                              } ${sizeSoldOut ? "is-disabled" : ""}`}
+                              onClick={() => setSelectedSkuId(size.id)}
+                              disabled={sizeSoldOut}
+                            >
+                              {size.size} / 재고 {size.stock}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {selectedSize && (
+                        <div className="product-detail-stock-panel">
+                          <div className="product-detail-stock-panel__top">
+                            <div className="product-detail-stock-panel__title">
+                              구매 가능 상태
+                            </div>
+
+                            <div className={stockBadgeClassName}>
+                              {stockBadgeText}
+                            </div>
+                          </div>
+
+                          <div className="product-detail-stock-stats">
+                            <div className="product-detail-stock-stat">
+                              <span className="product-detail-stock-stat__label">
+                                재고
+                              </span>
+                              <strong className="product-detail-stock-stat__value">
+                                {selectedStockQty}
+                              </strong>
+                            </div>
+
+                            <div className="product-detail-stock-stat">
+                              <span className="product-detail-stock-stat__label">
+                                담은 수량
+                              </span>
+                              <strong className="product-detail-stock-stat__value">
+                                {currentCartQty}
+                              </strong>
+                            </div>
+
+                            <div className="product-detail-stock-stat">
+                              <span className="product-detail-stock-stat__label">
+                                추가 가능
+                              </span>
+                              <strong className="product-detail-stock-stat__value">
+                                {remainingQty}
+                              </strong>
+                            </div>
+                          </div>
+
+                          <div className="product-detail-stock-progress">
+                            <div
+                              className="product-detail-stock-progress__bar"
+                              style={{ width: `${progressWidth}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -205,16 +314,16 @@ export default function ProductDetailPage() {
                     type="button"
                     className="product-detail-btn product-detail-btn--ghost"
                     onClick={addToCart}
-                    disabled={busy || !selectedSize || (selectedSize.stock ?? 0) < 1}
+                    disabled={busy || !selectedSize || soldOut || reachedCartLimit}
                   >
-                    {busy ? "처리 중..." : "장바구니 담기"}
+                    {addButtonText}
                   </button>
 
                   <button
                     type="button"
                     className="product-detail-btn product-detail-btn--primary"
                     onClick={goToCart}
-                    disabled={busy || !selectedSize || (selectedSize.stock ?? 0) < 1}
+                    disabled={busy}
                   >
                     {busy ? "처리 중..." : "장바구니로 이동"}
                   </button>
@@ -251,7 +360,9 @@ export default function ProductDetailPage() {
                   />
                   <SpecCard
                     label="Balance"
-                    value={product.spec.balanceMm ? `${product.spec.balanceMm} mm` : "-"}
+                    value={
+                      product.spec.balanceMm ? `${product.spec.balanceMm} mm` : "-"
+                    }
                   />
                   <SpecCard
                     label="Length"
