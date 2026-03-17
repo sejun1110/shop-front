@@ -116,8 +116,8 @@ export default function ProductsPage() {
           <div className="products-grid">
             {visibleProducts.map((product) => (
               <Link
-                key={product.productId}
-                href={`/products/${product.productId}`}
+                 key={product.productId || `product-${index}`}
+                 href={`/products/${product.productId}`}
                 className="product-card"
               >
                 <div className="product-card__image-wrap">

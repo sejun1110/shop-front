@@ -42,6 +42,7 @@ interface MemberForm {
   tel: string;
   address: string;
   detailAddress: string;
+  zip: string;
 }
 
 const BACKEND_BASE_URL = "http://localhost:9999";
@@ -61,6 +62,7 @@ export default function Member() {
     tel: "",
     address: "",
     detailAddress: "",
+    zip: "",
   });
 
   /* =======================
@@ -85,6 +87,7 @@ export default function Member() {
   ======================= */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
 
     if (form.password !== form.repeatPassword) {
       alert("비밀번호가 일치하지 않습니다");
@@ -124,8 +127,10 @@ export default function Member() {
 
     new window.daum.Postcode({
       oncomplete: (data: any) => {
+
         setForm((prev) => ({
           ...prev,
+          zip: data.zonecode,
           address: data.address,
         }));
       },
@@ -247,11 +252,14 @@ export default function Member() {
                     />
                   </div>
 
+
                   <AddressGroup>
-                    <Form.Control
-                      readOnly
-                      name="address"
-                      value={form.address}
+
+                   <Form.Control
+                    readOnly
+                    name="zip"
+                    value={form.zip}
+                    placeholder="우편번호"
                     />
                     <AddressButton
                       type="button"
@@ -261,6 +269,11 @@ export default function Member() {
                     </AddressButton>
                   </AddressGroup>
 
+                    <Form.Control
+                      readOnly
+                      name="address"
+                      value={form.address}
+                    />
                   <Form.Control
                     className="mt-2"
                     placeholder="상세주소"
@@ -270,6 +283,7 @@ export default function Member() {
                   />
 
                   <SubmitButton type="submit">
+
                     회원가입
                   </SubmitButton>
                 </Form>
@@ -277,7 +291,8 @@ export default function Member() {
                 <hr />
 
                 <SocialButton
-                  bg="#db4437"
+                  type="button"
+                  $variant="google"
                   onClick={() => socialLogin("google")}
                 >
                   <FontAwesomeIcon icon={faGoogle} />
@@ -285,7 +300,8 @@ export default function Member() {
                 </SocialButton>
 
                 <SocialButton
-                  bg="#E1306c"
+                  type="button"
+                  $variant="instagram"
                   onClick={() => socialLogin("instagram")}
                 >
                   <FontAwesomeIcon icon={faInstagram} />
@@ -293,7 +309,8 @@ export default function Member() {
                 </SocialButton>
 
                 <SocialButton
-                  bg="#1877f2"
+                  type="button"
+                  $variant="facebook"
                   onClick={() => socialLogin("facebook")}
                 >
                   <FontAwesomeIcon icon={faFacebookF} />

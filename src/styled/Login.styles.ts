@@ -65,7 +65,7 @@ color:${({variant}) => variant === "google"?"#444":"#fff"};
 border:${({variant}) => variant === "google" ? "1px solid #ddd" :"none" };
 
 box-shadow:0 2px 6px rgba(0,0,0,0.15);
-transtion: all 0.2s ease;
+transition: all 0.2s ease;
 i{font-size:1rem;}
 &:hover{
 transform:translateY(-1px);

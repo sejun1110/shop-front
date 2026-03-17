@@ -41,6 +41,7 @@ interface MemberForm {
   tel: string;
   address: string;
   detailAddress: string;
+  zip: string;
 }
 
 const BACKEND_BASE_URL = API_ROOT;
@@ -60,6 +61,7 @@ export default function Member() {
     tel: "",
     address: "",
     detailAddress: "",
+    zip: "",
   });
 
   const handleChange = (
@@ -121,6 +123,7 @@ export default function Member() {
       oncomplete: (data: any) => {
         setForm((prev) => ({
           ...prev,
+          zip: data.zonecode ?? "",
           address: data.address ?? "",
         }));
       },
@@ -240,9 +243,12 @@ export default function Member() {
                   <AddressGroup>
                     <Form.Control
                       readOnly
-                      name="address"
-                      value={form.address}
-                    />
+                      name="zip"
+                      value={form.zip}
+                      placeholder="우편번호"
+                      />
+
+
                     <AddressButton
                       type="button"
                       onClick={handleAddressSearch}
@@ -250,6 +256,13 @@ export default function Member() {
                       주소검색
                     </AddressButton>
                   </AddressGroup>
+
+                  <Form.Control
+                    className="mt-2"
+                    readOnly
+                    name="address"
+                    value={form.address}
+                  />
 
                   <Form.Control
                     className="mt-2"
@@ -267,7 +280,8 @@ export default function Member() {
                 <hr />
 
                 <SocialButton
-                  bg="#db4437"
+                  type="button"
+                  $variant="google"
                   onClick={() => socialLogin("google")}
                 >
                   <FontAwesomeIcon icon={faGoogle} />
@@ -275,7 +289,8 @@ export default function Member() {
                 </SocialButton>
 
                 <SocialButton
-                  bg="#E1306c"
+                  type="button"
+                  $variant="instagram"
                   onClick={() => socialLogin("instagram")}
                 >
                   <FontAwesomeIcon icon={faInstagram} />
@@ -283,7 +298,8 @@ export default function Member() {
                 </SocialButton>
 
                 <SocialButton
-                  bg="#1877f2"
+                  type="button"
+                  $variant="facebook"
                   onClick={() => socialLogin("facebook")}
                 >
                   <FontAwesomeIcon icon={faFacebookF} />

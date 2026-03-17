@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Container, Form, Modal } from "react-bootstrap";
-import api from "@/lib/axios";
+import api from "@/lib/api";
 import CheckoutModal from "@/modal/CheckoutModal"; // ✅ 경로는 프로젝트에 맞게 수정!
 
 const API_ROOT = "http://localhost:9999";
