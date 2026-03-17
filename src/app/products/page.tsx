@@ -114,7 +114,7 @@ export default function ProductsPage() {
           <div className="products-empty">등록된 상품이 없습니다.</div>
         ) : (
           <div className="products-grid">
-            {visibleProducts.map((product) => (
+            {visibleProducts.map((product, index) => (
               <Link
                  key={product.productId || `product-${index}`}
                  href={`/products/${product.productId}`}
