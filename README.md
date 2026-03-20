@@ -86,6 +86,9 @@ MES → 생산 관리
 
 ![arch](./docs/architecture.png)
 
+<img width="446" height="263" alt="image" src="https://github.com/user-attachments/assets/2fae3456-a48f-485c-add5-af83f4dafa91" />
+
+
 이 프로젝트는 단독 서비스가 아니라  
 통합 시스템의 일부입니다.
 
