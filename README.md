@@ -70,7 +70,7 @@ Home → Product List → Product Detail → Cart → Checkout → Order
 ```bash
 npm install
 npm run dev
-
+```
 ---
 ## Related Systems
 
@@ -78,7 +78,7 @@ ERP → 재고 관리
 MES → 생산 관리
 
 ---
-## Preniew
+## Preview
 ![main](./docs/main.png)
 
 ---
