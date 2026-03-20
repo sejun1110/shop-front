@@ -65,13 +65,14 @@ Home → Product List → Product Detail → Cart → Checkout → Order
 
 
 ---
-## 🚀 Getting Started
+##  Getting Started
 
 ```bash
 npm install
 npm run dev
 
----## 7️⃣ Related 
+---
+## Related 
 
 ```md
 ##  Related Systems
