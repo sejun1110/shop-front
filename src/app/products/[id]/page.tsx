@@ -164,6 +164,24 @@ export default function ProductDetailPage() {
     try {
       setBusy(true);
 
+      // 🌟 [추가/수정된 방어 로직] 장바구니에 담기 직전 최신 재고 한 번 더 확인!
+      const freshProductRes = await api.get<ProductDetail>(`/products/${id}`);
+      const freshSize = freshProductRes.data.sizes?.find((s) => s.id === selectedSize.id);
+      const freshStock = freshSize?.stock ?? 0;
+
+      if (freshStock < 1) {
+        alert("앗! 방금 전 상품이 품절되었습니다.");
+        setProduct(freshProductRes.data); // 화면 재고 갱신
+        return;
+      }
+
+      if (currentCartQty + 1 > freshStock) {
+        alert(`앗! 방금 전 누군가 구매하여 남은 재고가 부족합니다.\n(현재 남은 재고: ${freshStock}개)`);
+        setProduct(freshProductRes.data); // 화면 재고 갱신
+        return;
+      }
+      // --------------------------------------------------------
+
       await api.post("/cart/items", {
         skuId: selectedSize.id,
         quantity: 1,
