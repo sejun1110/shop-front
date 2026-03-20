@@ -1,4 +1,10 @@
 # SHOP - Tennis Racket Commerce
+<p align="left">
+  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js"/>
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react"/>
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript"/>
+  <img src="https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge"/>
+</p>
 
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js)
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react)
@@ -35,3 +41,56 @@ ERP / MES와 연결되는 주문 생성 시스템으로 설계되었습니다.
 
 ```text
 Home → Product List → Product Detail → Cart → Checkout → Order
+
+---
+
+## Core Flow
+
+1. 상품 조회
+2. 옵션(SKU) 선택
+3. 장바구니 담기
+4. 주문 생성
+5. 결제 완료
+6. ERP 재고 차감 연결
+
+---
+##  Key Points
+
+- SKU 기반 옵션 처리 구조
+- 서버 재고 검증 흐름 반영
+- API 경로 일관성 유지
+- 사용자 경험 중심 UI 설계
+
+---
+##  Tech Stack
+
+| Category  | Stack                          |
+|----------|--------------------------------|
+| Frontend | Next.js, React, TypeScript     |
+| API      | Axios                          |
+| UI       | CSS / Styled Components        |
+
+
+---
+## 🚀 Getting Started
+
+```bash
+npm install
+npm run dev
+
+---## 7️⃣ Related 
+
+```md
+##  Related Systems
+
+- ERP → 재고 관리
+- MES → 생산 관리
+
+---
+```md
+## Preniew
+![main](./docs/main.png)
+
+이 프로젝트는 단독 서비스가 아니라  
+통합 시스템의 일부입니다.
+
