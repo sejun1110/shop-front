@@ -67,8 +67,15 @@ export default function CartPage() {
     init();
   }, []);
 
-  const handleChangeQuantity = async (cartItemId: number, nextQty: number) => {
+  // 🌟 [수정된 방어 로직] 파라미터로 maxQty(현재 재고)를 받아서 API 쏘기 전에 차단!
+  const handleChangeQuantity = async (cartItemId: number, nextQty: number, maxQty: number) => {
     if (nextQty < 1) return;
+
+    // 재고보다 많이 담으려고 하면 경고창 띄우고 무시
+    if (nextQty > maxQty) {
+      alert(`남은 재고(${maxQty}개)보다 많이 담을 수 없습니다.`);
+      return;
+    }
 
     try {
       setBusyItemId(cartItemId);
@@ -112,6 +119,19 @@ export default function CartPage() {
     if (!cart || !cart.items || cart.items.length === 0) {
       alert("장바구니가 비어 있습니다.");
       return;
+    }
+
+    // 🌟 [추가된 방어 로직] 결제 페이지로 넘어가기 전 장바구니 전체 상품 재고 검사!
+    for (const item of cart.items) {
+      const currentStock = item.stockQty ?? 0;
+      if (item.quantity > currentStock) {
+        alert(
+          `[${item.productTitle || "상품"}]의 재고가 부족합니다.\n` +
+          `(현재 재고: ${currentStock}개, 담은 수량: ${item.quantity}개)\n` +
+          `수량을 조절하거나 삭제 후 다시 시도해주세요.`
+        );
+        return; // 여기서 멈추고 결제 페이지로 넘어가지 않음
+      }
     }
 
     router.push("/checkout");
@@ -183,7 +203,7 @@ export default function CartPage() {
                           type="button"
                           className="cart-qty__btn"
                           onClick={() =>
-                            handleChangeQuantity(item.cartItemId, item.quantity - 1)
+                            handleChangeQuantity(item.cartItemId, item.quantity - 1, item.stockQty ?? 0)
                           }
                           disabled={busyItemId === item.cartItemId || item.quantity <= 1}
                         >
@@ -196,7 +216,7 @@ export default function CartPage() {
                           type="button"
                           className="cart-qty__btn"
                           onClick={() =>
-                            handleChangeQuantity(item.cartItemId, item.quantity + 1)
+                            handleChangeQuantity(item.cartItemId, item.quantity + 1, item.stockQty ?? 0)
                           }
                           disabled={
                             busyItemId === item.cartItemId || maxReached
@@ -208,7 +228,9 @@ export default function CartPage() {
                       </div>
 
                       {maxReached && (
-                        <div className="cart-item__meta">최대 수량입니다.</div>
+                        <div className="cart-item__meta" style={{ color: "#d32f2f", fontWeight: "bold", marginTop: "4px" }}>
+                          최대 수량입니다.
+                        </div>
                       )}
 
                       <button
