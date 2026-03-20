@@ -46,6 +46,21 @@ Home → Product List → Product Detail → Cart → Checkout → Order
 5. 결제 완료
 6. ERP 재고 차감 연결
 
+
+---
+## Shop System Architecture
+
+<img src="./docs/shop_sys_arch.png" width="1200"/>
+
+## Shop Flow Diagram
+
+<img src="./docs/shop_flow_arch.png" width="1200"/>
+
+---
+## Shop ERD
+
+<img src="./docs/shop_erd.png" width="1200"/>
+
 ---
 ##  Key Points
 
@@ -71,6 +86,7 @@ Home → Product List → Product Detail → Cart → Checkout → Order
 npm install
 npm run dev
 ```
+http://localhost:3000
 ---
 ## Related Systems
 
@@ -78,15 +94,6 @@ ERP → 재고 관리
 MES → 생산 관리
 
 ---
-## Preview
-![main](./docs/main.png)
-
----
-## System Architecture
-
-![arch](./docs/architecture.png)
-
-<img width="446" height="263" alt="image" src="https://github.com/user-attachments/assets/2fae3456-a48f-485c-add5-af83f4dafa91" />
 
 
 이 프로젝트는 단독 서비스가 아니라  
