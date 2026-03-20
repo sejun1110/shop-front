@@ -72,18 +72,19 @@ npm install
 npm run dev
 
 ---
-## Related 
+## Related Systems
 
-```md
-##  Related Systems
-
-- ERP → 재고 관리
-- MES → 생산 관리
+ERP → 재고 관리
+MES → 생산 관리
 
 ---
-```md
 ## Preniew
 ![main](./docs/main.png)
+
+---
+## System Architecture
+
+![arch](./docs/architecture.png)
 
 이 프로젝트는 단독 서비스가 아니라  
 통합 시스템의 일부입니다.
