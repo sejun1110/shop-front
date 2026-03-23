@@ -67,3 +67,4 @@ export type OrderResponse = {
   memo: string | null;
   items: OrderItemResponse[];
 };
+
