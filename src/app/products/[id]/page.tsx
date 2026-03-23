@@ -61,7 +61,7 @@ export default function ProductDetailPage() {
         let loggedIn = false;
 
         try {
-          await api.get("/members/me");
+          await api.get("/auth/me");
           setIsLogin(true);
           loggedIn = true;
         } catch {

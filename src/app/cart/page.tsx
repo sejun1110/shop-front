@@ -51,7 +51,7 @@ export default function CartPage() {
         setLoading(true);
         setPageError(null);
 
-        await api.get("/members/me");
+        await api.get("/auth/me");
         setIsLogin(true);
         await loadCart();
       } catch (e) {

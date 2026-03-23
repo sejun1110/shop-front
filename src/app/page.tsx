@@ -98,7 +98,7 @@ export default function HomePage() {
         setMenus(Array.isArray(menuRes.data) ? menuRes.data : []);
 
         try {
-          await api.get("/members/me");
+          await api.get("/auth/me");
           setIsLogin(true);
         } catch {
           setIsLogin(false);
