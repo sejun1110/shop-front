@@ -19,7 +19,7 @@ export default function LoginPage() {
   useEffect(() => {
     const checkMe = async () => {
       try {
-        await api.get("/members/me");
+        await api.get("/auth/me");
         setIsLogin(true);
         router.replace("/");
       } catch {

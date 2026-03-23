@@ -192,7 +192,7 @@ export default function Admin() {
           </div>
 
           <ContentInner>
-            {products.map((p) => (
+            {products.content?.map((p) => (
               <ProductCard
                 key={p.id}
                 onClick={() => openModal("view", p.id)}

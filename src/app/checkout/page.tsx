@@ -100,7 +100,7 @@ export default function CheckoutPage() {
 
         const [cartRes, meRes] = await Promise.all([
           api.get("/cart"),
-          api.get("/members/me"),
+          api.get("/auth/me"),
         ]);
 
         console.log("checkout cart response =", cartRes.data);

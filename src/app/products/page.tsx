@@ -59,7 +59,7 @@ export default function ProductsPage() {
         setProducts(list);
 
         try {
-          await api.get("/members/me");
+          await api.get("/auth/me");
           setIsLogin(true);
         } catch {
           setIsLogin(false);

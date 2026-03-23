@@ -11,7 +11,7 @@ export async function loginMember(payload: LoginRequest): Promise<void> {
 }
 
 export async function getMyMember(): Promise<MeResponse> {
-  const res = await api.get<MeResponse>("/members/me");
+  const res = await api.get<MeResponse>("/auth/me");
   return res.data;
 }
 

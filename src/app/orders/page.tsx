@@ -32,18 +32,22 @@ export default function OrdersPage() {
       try {
         setLoading(true);
         setError(null);
-        await api.get("/members/me");
+
+        await api.get("/auth/me");
         setIsLogin(true);
+
         const res = await api.get<OrderListItemResponse[]>("/orders");
         setOrders(Array.isArray(res.data) ? res.data : []);
       } catch (e) {
-        const message = e instanceof Error ? e.message : "주문 목록을 불러오지 못했습니다.";
+        const message =
+          e instanceof Error ? e.message : "주문 목록을 불러오지 못했습니다.";
         setError(message);
         setIsLogin(false);
       } finally {
         setLoading(false);
       }
     };
+
     load();
   }, []);
 
@@ -54,17 +58,17 @@ export default function OrdersPage() {
       const res = await api.post("/orders", orderRequestData);
 
       if (res.status === 200 || res.status === 201) {
-        
+
         alert("주문이 성공적으로 완료되었습니다!");
         router.push("/orders/post"); // 또는 "/orders/success"
       }
     } catch (e: any) {
-      
+
       const errorMessage = e.response?.data?.message || "주문 처리 중 오류가 발생했습니다.";
-      
+
       // 1. 에러 메시지 표시
       alert(`주문 실패: ${errorMessage}`);
-      
+
       // 2. 현재 페이지(주문서/상세) 유지
       // Next.js에서는 router.push를 안 하면 페이지가 유지됩니다.
       console.error("Order Failure:", e);
