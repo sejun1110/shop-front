@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useParams ,useRouter} from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Header from "@/include/Header";
 import Footer from "@/include/Footer";
 import api from "@/lib/api";
@@ -10,211 +9,120 @@ import {
   ORDER_STATUS_COLOR,
   ORDER_STATUS_LABEL,
   type OrderResponse,
-  type OrderStatus,
 } from "@/types/order";
 import "./page.css";
 
-function canCancel(status: OrderStatus) {
-  return status === "PENDING" || status === "PAID";
-}
-
-export default function OrderDetailPage() {
+export default function OrderPayPage() {
   const params = useParams<{ id: string }>();
   const orderId = Number(params?.id);
   const router = useRouter();
 
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isLogin, setIsLogin] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!orderId || Number.isNaN(orderId)) {
-      setError("잘못된 주문 번호입니다.");
-      setLoading(false);
-      return;
-    }
-
     const load = async () => {
       try {
         setLoading(true);
-        setError(null);
-
         await api.get("/members/me");
         setIsLogin(true);
 
         const res = await api.get<OrderResponse>(`/orders/${orderId}`);
         setOrder(res.data);
       } catch (e) {
-        const message =
-          e instanceof Error ? e.message : "주문 상세를 불러오지 못했습니다.";
-        setError(message);
+        console.error("데이터 로드 실패:", e);
         setIsLogin(false);
       } finally {
         setLoading(false);
       }
     };
-
-    load();
+    if (orderId) load();
   }, [orderId]);
 
-  const handleCancel = async () => {
-    if (!order || !canCancel(order.status)) return;
-
-    const ok = confirm("이 주문을 취소할까요?");
-    if (!ok) return;
-
-    try {
-      setBusy(true);
-
-      const res = await api.post<OrderResponse>(`/orders/${order.orderId}/cancel`);
-      setOrder(res.data);
-
-      alert("주문이 취소되었습니다.");
-    } catch (e) {
-      const message =
-        e instanceof Error ? e.message : "주문 취소에 실패했습니다.";
-      alert(message);
-    } finally {
-      setBusy(false);
-    }
-  };
+  if (loading) return <p className="order-detail-state">결제 정보 확인 중...</p>;
+  if (!order) return <p className="order-detail-state">정보를 찾을 수 없습니다.</p>;
 
   return (
     <main className="order-detail-page">
       <Header isLogin={isLogin} setIsLogin={setIsLogin} />
 
-      <section className="order-detail-container">
-        <div className="order-detail-back">
-          <Link href="/orders">← 주문 목록으로</Link>
+      <section className="order-detail-container" style={{ textAlign: "center", padding: "40px 20px" }}>
+        {/* 상단 요약 카드 */}
+        <div className="order-detail-card">
+          <h1 style={{ fontSize: "2rem", color: "#16a34a", marginBottom: "10px" }}>
+            🎉 구매가 완료되었습니다!
+          </h1>
+          
+          <div style={{ marginBottom: "20px" }}>
+            <span className={`order-status-badge order-status-badge--${ORDER_STATUS_COLOR['PAID']}`}>
+              {ORDER_STATUS_LABEL['PAID']}
+            </span>
+          </div>
+
+          <div className="order-detail-info" style={{ borderTop: "1px solid #eee", paddingTop: "20px" }}>
+            <p><strong>주문번호:</strong> {order.orderNo}</p>
+            <p style={{ fontSize: "1.2rem", marginTop: "10px" }}>
+              최종 결제 금액: <strong style={{ color: "#2563eb" }}>
+                {Number(order.totalPrice ?? 0).toLocaleString()}원
+              </strong>
+            </p>
+          </div>
         </div>
 
-        {loading ? (
-          <p className="order-detail-state">주문 상세 불러오는 중...</p>
-        ) : error ? (
-          <p className="order-detail-error">{error}</p>
-        ) : !order ? (
-          <p className="order-detail-state">주문 정보를 찾을 수 없습니다.</p>
-        ) : (
-          <>
-            <div className="order-detail-card">
-              <h1 className="order-detail-title">주문 상세</h1>
-
-              <div className="order-detail-info">
-                <div>
-                  <strong>주문번호:</strong> {order.orderNo}
+        <div className="order-detail-card" style={{ textAlign: "left", marginTop: "20px" }}>
+          <h2 className="order-detail-subtitle" style={{ borderBottom: "2px solid #333", paddingBottom: "10px", marginBottom: "15px" }}>
+            주문 상품
+          </h2>
+          
+          {order.items && order.items.length > 0 ? (
+            order.items.map((item, index) => (
+              <div key={index} style={{ borderBottom: "1px solid #ddd", padding: "15px 0", display: "flex", flexDirection: "column", gap: "8px" }}>
+                {/* 1. 상품명 */}
+                <h3 style={{ fontSize: "1.1rem", margin: "0", color: "#111" }}>
+                  {item.productTitle || "상품명 없음"}
+                </h3>
+                
+                {/* 2. 사이즈 & 3. SKU */}
+                <div style={{ color: "#555", fontSize: "0.95rem" }}>
+                  <span style={{ marginRight: "15px" }}><strong>사이즈:</strong> {item.size || "정보 없음"}</span>
+                  <span><strong>SKU:</strong> {item.skuCode || "정보 없음"}</span>
                 </div>
-                <div>
-                  <strong>상태:</strong>{" "}
-                  <span
-                    className={`order-status-badge order-status-badge--${ORDER_STATUS_COLOR[order.status]}`}
-                  >
-                    {ORDER_STATUS_LABEL[order.status]}
+                
+                {/* 4. 주문가격 & 5. 수량 */}
+                <div style={{ color: "#555", fontSize: "0.95rem" }}>
+                  <span style={{ marginRight: "15px" }}><strong>주문가격:</strong> {Number(item.orderPrice || 0).toLocaleString()}원</span>
+                  <span><strong>수량:</strong> {item.quantity || 0}개</span>
+                </div>
+                
+                {/* 6. 합계 (0원 에러 해결 완료! 수량 * 단가) */}
+                <div style={{ marginTop: "5px", fontSize: "1.1rem" }}>
+                  <strong>합계:</strong> <span style={{ color: "#e11d48", fontWeight: "bold" }}>
+                    {Number((item.orderPrice * item.quantity) || 0).toLocaleString()}원
                   </span>
                 </div>
-                <div>
-                  <strong>수령인:</strong> {order.receiverName}
-                </div>
-                <div>
-                  <strong>연락처:</strong> {order.receiverPhone}
-                </div>
-                <div>
-                  <strong>우편번호:</strong> {order.zip || "-"}
-                </div>
-                <div>
-                  <strong>주소1:</strong> {order.address1}
-                </div>
-                <div>
-                  <strong>주소2:</strong> {order.address2 || "-"}
-                </div>
-                <div>
-                  <strong>메모:</strong> {order.memo || "-"}
-                </div>
-                <div>
-                  <strong>총금액:</strong> {Number(order.totalPrice ?? 0).toLocaleString()}원
-                </div>
               </div>
+            ))
+          ) : (
+            <p style={{ color: "#888", textAlign: "center", padding: "20px 0" }}>주문 상품 정보가 없습니다.</p>
+          )}
+        </div>
+      
 
-                          {/* --- 버튼 그룹 시작 --- */}
-<div className="order-action-group"> 
-  
-  {/* 주문 취소 버튼: 취소가 가능할 때만 보임 */}
-  {canCancel(order.status) && (
-    <button
-      type="button"
-      onClick={handleCancel}
-      disabled={busy}
-      className="order-cancel-button"
-    >
-      {busy ? "취소 처리 중..." : "주문 취소"}
-    </button>
-  )}
+        {/* 배송지 정보 카드 */}
+        <div className="order-detail-card" style={{ textAlign: "left", marginTop: "20px" }}>
+          <h2 className="order-detail-subtitle">배송지 정보</h2>
+          <p><strong>수령인:</strong> {order.receiverName}</p>
+          <p><strong>주소:</strong> {order.address1} {order.address2}</p>
+        </div>
 
-  {/* 구매 버튼: 언제나 보이며 누르면 상품 목록으로 이동 */}
- <button
-  type="button"
-  className="order-purchase-button"
-  onClick={async () => {
-    try {
-      // 1. 백엔드에 결제 완료 처리 요청 (4번 API) [cite: 11]
-      const response = await fetch(`/api/orders/${orderId}/pay`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        // 2. DB 상태가 PAID로 바뀐 후 알림창 표시 
-        alert("구매 완료 되었습니다.");
-        
-        // 3. 새로 만든 결제 완료 상세 페이지로 이동 
-        router.push(`/orders/${orderId}/pay`);
-      }
-    } catch (error) {
-      alert("결제 처리 중 오류가 발생했습니다.");
-    }
-  }}
->
-  구매
-</button>
-  
-</div>
-{/* --- 버튼 그룹 끝 --- */}
-            </div>
-
-            <div className="order-detail-card">
-              <h2 className="order-detail-subtitle">주문 상품</h2>
-
-              {order.items.length === 0 ? (
-                <p className="order-detail-state">주문 상품이 없습니다.</p>
-              ) : (
-                <div className="order-item-list">
-                  {order.items.map((item) => (
-                    <div key={item.orderItemId} className="order-item-card">
-                      <div>
-                        <strong>상품명:</strong> {item.productTitle ?? "-"}
-                      </div>
-                      <div>
-                        <strong>사이즈:</strong> {item.size}
-                      </div>
-                      <div>
-                        <strong>SKU:</strong> {item.skuCode}
-                      </div>
-                      <div>
-                        <strong>주문가격:</strong> {Number(item.orderPrice ?? 0).toLocaleString()}원
-                      </div>
-                      <div>
-                        <strong>수량:</strong> {item.quantity}
-                      </div>
-                      <div>
-                        <strong>합계:</strong> {Number(item.lineAmount ?? 0).toLocaleString()}원
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
-        )}
+        <button 
+          onClick={() => router.push("/products")} 
+          className="order-purchase-button"
+          style={{ width: "100%", marginTop: "30px", backgroundColor: "#333" }}
+        >
+          쇼핑 계속하기
+        </button>
       </section>
 
       <Footer />

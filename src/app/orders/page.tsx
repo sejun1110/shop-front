@@ -26,29 +26,50 @@ export default function OrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLogin, setIsLogin] = useState<boolean | null>(null);
 
+  // 1. 주문 목록 로드 (기존 로직)
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
         setError(null);
-
         await api.get("/members/me");
         setIsLogin(true);
-
         const res = await api.get<OrderListItemResponse[]>("/orders");
         setOrders(Array.isArray(res.data) ? res.data : []);
       } catch (e) {
-        const message =
-          e instanceof Error ? e.message : "주문 목록을 불러오지 못했습니다.";
+        const message = e instanceof Error ? e.message : "주문 목록을 불러오지 못했습니다.";
         setError(message);
         setIsLogin(false);
       } finally {
         setLoading(false);
       }
     };
-
     load();
   }, []);
+
+  // 2. [추가] 주문하기 버튼 클릭 시 로직 (재고 부족 실패 처리 포함)
+  const handleCreateOrder = async (orderRequestData: any) => {
+    try {
+      // 주문 생성 API 호출 (API-008)
+      const res = await api.post("/orders", orderRequestData);
+
+      if (res.status === 200 || res.status === 201) {
+        
+        alert("주문이 성공적으로 완료되었습니다!");
+        router.push("/orders/post"); // 또는 "/orders/success"
+      }
+    } catch (e: any) {
+      
+      const errorMessage = e.response?.data?.message || "주문 처리 중 오류가 발생했습니다.";
+      
+      // 1. 에러 메시지 표시
+      alert(`주문 실패: ${errorMessage}`);
+      
+      // 2. 현재 페이지(주문서/상세) 유지
+      // Next.js에서는 router.push를 안 하면 페이지가 유지됩니다.
+      console.error("Order Failure:", e);
+    }
+  };
 
   return (
     <main className="orders-page">
@@ -56,6 +77,9 @@ export default function OrdersPage() {
 
       <section className="orders-container">
         <h1 className="orders-title">내 주문 목록</h1>
+
+        {/* 프로젝트용: 주문 생성 테스트 버튼 (필요시 UI에 배치) */}
+        {/* <button onClick={() => handleCreateOrder({...})}>테스트 주문하기</button> */}
 
         {loading ? (
           <p className="orders-state">주문 목록 불러오는 중...</p>

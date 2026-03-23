@@ -8,7 +8,7 @@ import api, { API_ROOT } from "@/lib/api";
 import "./page.css";
 
 type ProductItem = {
-  productId: number;
+  Id: number;
   title: string;
   brandName?: string | null;
   price: number;
@@ -117,7 +117,7 @@ export default function ProductsPage() {
             {visibleProducts.map((product, index) => (
               <Link
                  key={product.productId || `product-${index}`}
-                 href={`/products/${product.productId}`}
+                 href={`/products/${product.id}`}
                 className="product-card"
               >
                 <div className="product-card__image-wrap">
