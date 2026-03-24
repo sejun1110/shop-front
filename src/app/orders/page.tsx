@@ -26,7 +26,7 @@ export default function OrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLogin, setIsLogin] = useState<boolean | null>(null);
 
-  // 1. 주문 목록 로드 (기존 로직)
+  // 1. 주문 목록 로드
   useEffect(() => {
     const load = async () => {
       try {
@@ -58,19 +58,16 @@ export default function OrdersPage() {
       const res = await api.post("/orders", orderRequestData);
 
       if (res.status === 200 || res.status === 201) {
-
         alert("주문이 성공적으로 완료되었습니다!");
         router.push("/orders/post"); // 또는 "/orders/success"
       }
     } catch (e: any) {
-
       const errorMessage = e.response?.data?.message || "주문 처리 중 오류가 발생했습니다.";
 
       // 1. 에러 메시지 표시
       alert(`주문 실패: ${errorMessage}`);
 
       // 2. 현재 페이지(주문서/상세) 유지
-      // Next.js에서는 router.push를 안 하면 페이지가 유지됩니다.
       console.error("Order Failure:", e);
     }
   };
@@ -104,7 +101,7 @@ export default function OrdersPage() {
                   <div>
                     <div className="order-card__label">주문번호</div>
                     <div className="order-card__value order-card__value--strong">
-                      {order.orderNo}
+                      {order.orderNo || order.orderId}
                     </div>
                   </div>
 
@@ -125,7 +122,8 @@ export default function OrdersPage() {
                   <div>
                     <div className="order-card__label">총금액</div>
                     <div className="order-card__value order-card__value--strong">
-                      {Number(order.totalPrice ?? 0).toLocaleString()}원
+                      {/* 상세 페이지와 동일하게 0원 방지 로직 적용 */}
+                      {Number((order as any).totalAmount || order.totalPrice || 0).toLocaleString()}원
                     </div>
                   </div>
 

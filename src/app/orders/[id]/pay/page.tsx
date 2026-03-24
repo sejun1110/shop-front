@@ -26,7 +26,7 @@ export default function OrderPayPage() {
       try {
         setLoading(true);
         // 로그인 및 주문 데이터 로드
-        await api.get("/members/me");
+        await api.get("/auth/me");
         setIsLogin(true);
 
         const res = await api.get<OrderResponse>(`/orders/${orderId}`);
